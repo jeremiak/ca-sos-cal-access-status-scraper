@@ -1,0 +1,25 @@
+name: Get status of Cal-Access
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0,5,10,15,20,25,30,35,40,45,50,55 * * * *'
+
+jobs:
+  scheduled:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out this repo
+      uses: actions/checkout@v2
+    - name: Scrape PowerSearch status
+      run: |-
+        curl -s -o /dev/null -w "%{http_code}" https://cal-access.sos.ca.gov/ > status.txt
+    - name: Commit and push if it changed
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add status.txt
+        timestamp=$(date -u)
+        git commit -m "Latest data: ${timestamp}" || exit 0
+        git push
